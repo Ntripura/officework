@@ -46,11 +46,7 @@ class RegisterUser(View):
             password = make_password(form.cleaned_data['password'])
             confirm_password =form.cleaned_data['confirm_password']
             #check_password(password, h1)
-            
             check_password(password,data['password'])
-           # print(check)
-            #form.password =make_password(data['password'])
-            #print(password)
             #form.save()
             register = models.ConsumerModel(first_name = firstname, last_name = lastname, email = email, 
                                             mobile = mobile, username = username, password = password,
@@ -83,20 +79,18 @@ class LoginUser(View):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             user = models.ConsumerModel.objects.get(username = username, password =password)
-            payload ={"username":user.username,"password":user.password,'exp': datetime.now(timezone.utc) + timedelta(seconds=300)}
-            SECRET= settings.SECRET_KEY
-            #user_hash = models.ConsumerModel.objects.get()
-            #hash_password = user.password_hash
-            #verify_password = bcrypt.checkpw(data['password'].encode('utf-8'), hash_password)
-            #login_password = data['password']
             if user:
+                id = str(user._id)
+                payload ={"username":user.username,"password":user.password,"id":id,'exp': datetime.now(timezone.utc) + timedelta(seconds=300)}
+                SECRET= settings.SECRET_KEY
+                request.user = payload.get('user')
                 #if verify_password(login_password, hash_password):
-                    
-                    token = jwt.encode(payload, SECRET, algorithm='HS256',headers=header)
-                    print(data)
-                    print(token)
-                    
-                    return JsonResponse({'error':'false', 'token':token.decode()}) 
+                token = jwt.encode(payload, SECRET, algorithm='HS256',headers=header)
+                print(data)
+                print(token)
+                print(request.user)
+                #print(request.user._id)
+                return JsonResponse({'error':'false', 'token':token.decode()}) 
             else:
                 return JsonResponse({'error':'true', 'msg':'Invalid username or password'})
             
