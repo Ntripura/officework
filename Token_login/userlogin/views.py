@@ -112,13 +112,12 @@ class UserDetails(View):
             context = {'first_name':dataget.first_name, 'last_name': dataget.last_name, 'mobile':dataget.mobile,'email': dataget.email}
             print(context)
             return JsonResponse(context)   
-    #     else:
-    #         data = models.EmployeeModel.objects.all()
-    #         print(data)
-    #         context = {'employees': list(data.values("first_name","last_name","email"))}
-    #         print(context)
-    #         return JsonResponse(context)   
-    
+       else:
+            data = models.ConsumerModel.objects.get(self.request.user)
+            print(data)
+            context = {'user': data}
+            print(context)
+            return JsonResponse(context)   
     
     
 class DummyRelationDetails(View):
