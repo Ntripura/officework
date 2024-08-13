@@ -33,9 +33,14 @@ def authenticate(func):
         if "HTTP_AUTHORIZATION" not in headers:
             return HttpResponse(403)
         token = headers["HTTP_AUTHORIZATION"].split()[1]
+        #user = headers.get("HTTP_X_USER", None)
+        user = headers.get("X_USERNAME")
+        print("user from auth",user)
         try:
             payload = jwt.decode(
                 token, settings.SECRET_KEY, algorithms=['HS256'])
+            request.user = payload
+            print("payload from auth",request.user)
         except jwt.exceptions.InvalidSignatureError:
           return HttpResponse("Invalid Token", status=401)
         return func(*args, **kwargs)

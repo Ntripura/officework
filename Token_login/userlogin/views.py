@@ -30,14 +30,10 @@ class RegisterUser(View):
     def post(self, request):
         data = json.loads(request.body.decode('utf-8'))
         form = forms.ConsumerForm(data)
-        
-        #print(hashpass)
-        #salt = bcrypt.gensalt(10)
         if form.is_valid():    
             #     aa= models.ConsumerModel(password_hash=hashpass) This way it is saving hash only in other object
             #     aa.save()
             #     print(aa.password_hash)
-           
             firstname = form.cleaned_data['first_name']
             lastname = form.cleaned_data['last_name']
             mobile = form.cleaned_data['mobile']
@@ -45,8 +41,10 @@ class RegisterUser(View):
             username = form.cleaned_data['username']
             password = make_password(form.cleaned_data['password'])
             confirm_password =form.cleaned_data['confirm_password']
-            #check_password(password, h1)
             check_password(password,data['password'])
+           # print(check)
+            #form.password =make_password(data['password'])
+            #print(password)
             #form.save()
             register = models.ConsumerModel(first_name = firstname, last_name = lastname, email = email, 
                                             mobile = mobile, username = username, password = password,
@@ -57,15 +55,12 @@ class RegisterUser(View):
         else:
             return JsonResponse({'error':'true','msg':'user creation failed','form':form.errors})
     
-    
-    
 class LoginUser(View):
     form = forms.LoginForm
     
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super(LoginUser, self).dispatch(request, *args, **kwargs)
-   
     
     def post(self, request):
         data = json.loads(request.body.decode('utf-8'))
@@ -93,8 +88,6 @@ class LoginUser(View):
                 return JsonResponse({'error':'false', 'token':token.decode()}) 
             else:
                 return JsonResponse({'error':'true', 'msg':'Invalid username or password'})
-            
-            
         else:
             return JsonResponse({'error':'true','msg':'user login failed','form':form.errors})
     
@@ -107,7 +100,9 @@ class UserDetails(View):
     @authenticate
     def get(self,request,pk=None):
        form = forms.ConsumerForm()
+       print("From get",request.user)
        if pk is not None:
+            #dataget = models.ConsumerModel.objects.get(pk=request.user['id'])
             dataget = models.ConsumerModel.objects.get(pk=ObjectId(pk))
             context = {'first_name':dataget.first_name, 'last_name': dataget.last_name, 'mobile':dataget.mobile,'email': dataget.email}
             print(context)
@@ -118,8 +113,7 @@ class UserDetails(View):
             context = {'user': data}
             print(context)
             return JsonResponse(context)   
-    
-    
+
 class DummyRelationDetails(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -127,33 +121,28 @@ class DummyRelationDetails(View):
     
     @authenticate
     def post(self, request):
+        dummy = None
         data = json.loads(request.body.decode('utf-8'))
         form = forms.DummyRelationForm(data)
-    
-       # con = models.ConsumerModel.objects.get(ObjectId(self.request.user))
-        #con_id = models.DummyRelationModel.objects.get(consumer_id = self.request.user)
-       # consumer_id = models.DummyRelationModel.objects.get(consumer_id = request.user.id)
-    
-        con_id = request.POST.get('consumer_id')
-        consumer_id = models.ConsumerModel.objects.get(_id=con_id)
-        print("con_id",con_id)
-        
+        print("From dummy post",request.user)
+        print(request.user['id'])
         if form.is_valid():
-            
             firmname = form.cleaned_data['firm_name']
             firmaddress = form.cleaned_data['firm_address']
             account_id = form.cleaned_data['account_id']
             biz_no = form.cleaned_data['biz_identification_no']
-            now = datetime.now()
-            time =now.strftime("%Y-%m-%d %H:%M:%S")
-            created = time
             others =  form.cleaned_data['others']
-            form.save()
-            if form.save():
-                return JsonResponse({'error':'false', 'msg':'Dummy relationship created'}) 
-            else:
-                return JsonResponse({'error':'true', 'msg':'Invalid relationship'})
+            now = datetime.now(timezone.utc)
+            time =now.strftime("%Y-%m-%d %H:%M:%S")
+            consumer_id = request.user['id']
+            con = models.DummyRelationModel(consumer_id = consumer_id,created = time,
+                                            firm_name =firmname, firm_address = firmaddress,
+                                            account_id = account_id, biz_identification_no = biz_no,
+                                            others = others)
+            c =con.save()
+            #form.save()
             
+            return JsonResponse({'error':'false', 'msg':'Dummy relationship created'})  
         else:
             return JsonResponse({'error':'true','msg':'Dummy relation creation failed','form':form.errors})
     
@@ -171,7 +160,7 @@ class DummyRelationDetails(View):
        else:
             data = models.DummyRelationModel.objects.all()
             print(data)
-            context = {'reminders': list(data.values('firm_name',
+            context = {'dummy relationship': list(data.values('firm_name',
                             'firm_address',
                             'account_id',
                             'created',
