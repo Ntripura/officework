@@ -219,55 +219,10 @@ class ReminderDetails(View):
     
     
     
-class PDetails(View):
+class BusinessDetails(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
-        return super(PDetails, self).dispatch(request, *args, **kwargs)
-    
-    @authenticate
-    def post(self, request):
-        data = json.loads(request.body.decode('utf-8'))
-        print("From business post",request.user)
-        print(request.user['id'])
-        if data['category'] == "prof":
-            form = forms.ProfessionalForm(data)
-            if form.is_valid():
-                uid = os.urandom(3).hex().upper()
-                name = form.cleaned_data['name']
-                category = form.cleaned_data['category']
-                subcategory = form.cleaned_data['subcategory']
-                country= form.cleaned_data['country']
-                contact_person =  form.cleaned_data['contact_person']
-                contact_phone = form.cleaned_data['contact_phone']
-                email = form.cleaned_data['email']
-                password = form.cleaned_data['password']
-                address= form.cleaned_data['address']
-                correspondance_address =  form.cleaned_data['correspondance_address']
-                alias_name = form.cleaned_data['alias_name']
-                legal_structure = form.cleaned_data['legal_structure']
-                company_website = form.cleaned_data['company_website']
-                registration_no= form.cleaned_data['registration_no']
-                now = datetime.now(timezone.utc)
-                time =now.strftime("%Y-%m-%d %H:%M:%S")
-                created = time
-                con = models.ProfessionalModel(uid = uid,name = name, category = category, 
-                                           subcategory = subcategory,country = country, 
-                            contact_person = contact_person,contact_phone = contact_phone,
-                            email = email,password = password, address = address,
-                            correspondance_address = correspondance_address,
-                            alias_name = alias_name,legal_structure = legal_structure,
-                            company_website = company_website, joined = created,
-                            registration_no = registration_no)
-                con.save()
-                return JsonResponse({'error':'false', 'msg':'Professional Data created'})  
-            else:
-                return JsonResponse({'error':'true','msg':'Professional creation failed','form':form.errors})     
-    
-        
-class BDetails(View):
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super(BDetails, self).dispatch(request, *args, **kwargs)
+        return super(BusinessDetails, self).dispatch(request, *args, **kwargs)
     
     @authenticate
     def post(self, request):
@@ -294,19 +249,218 @@ class BDetails(View):
                 registration_no= form.cleaned_data['registration_no']
                 now = datetime.now(timezone.utc)
                 time =now.strftime("%Y-%m-%d %H:%M:%S")
-                created =time
-                con = models.BusinessModel(uid = uid,name = name, category = category, 
-                                           subcategory = subcategory,country = country, 
-                            contact_person = contact_person,contact_phone = contact_phone,
+                
+                
+                con = models.BusinessModel(uid = uid,name = name, category = category, subcategory = subcategory,
+                            country = country, contact_person = contact_person,contact_phone = contact_phone,
                             email = email,password = password, address = address,
-                            correspondance_address = correspondance_address,
-                            alias_name = alias_name,legal_structure = legal_structure,
-                            company_website = company_website, joined = created,
+                            correspondance_address = correspondance_address,alias_name = alias_name,
+                            legal_structure = legal_structure, company_website = company_website,
                             registration_no = registration_no)
                 con.save()
                 return JsonResponse({'error':'false', 'msg':'Business Data created'})  
             else:
-                return JsonResponse({'error':'true','msg':'Business creation failed','form':form.errors})        
-            
-            
+                return JsonResponse({'error':'true','msg':'Business creation failed','form':form.errors})
+        else:
+            form = forms.ProfessionalForm(data)
+            if form.is_valid():
+                uid = os.urandom(3).hex().upper()
+                name = form.cleaned_data['name']
+                category = form.cleaned_data['category']
+                subcategory = form.cleaned_data['subcategory']
+                country= form.cleaned_data['country']
+                contact_person =  form.cleaned_data['contact_person']
+                contact_phone = form.cleaned_data['contact_phone']
+                email = form.cleaned_data['email']
+                password = form.cleaned_data['password']
+                address= form.cleaned_data['address']
+                correspondance_address =  form.cleaned_data['correspondance_address']
+                alias_name = form.cleaned_data['alias_name']
+                legal_structure = form.cleaned_data['legal_structure']
+                company_website = form.cleaned_data['company_website']
+                registration_no= form.cleaned_data['registration_no']
+                now = datetime.now(timezone.utc)
+                time =now.strftime("%Y-%m-%d %H:%M:%S")
+                #consumer_id = request.user['id']
+                
+                con = models.ProfessionalModel(uid = uid, name = name, category = category, subcategory = subcategory,
+                            country = country, contact_person = contact_person,contact_phone = contact_phone,
+                            email = email,password = password,  address = address,
+                            correspondance_address = correspondance_address,alias_name = alias_name,
+                            legal_structure = legal_structure, company_website = company_website,
+                            registration_no = registration_no)
+                con.save()
+                return JsonResponse({'error':'false', 'msg':'Professional Data created'})  
+            else:
+                return JsonResponse({'error':'true','msg':'Professional creation failed','form':form.errors})     
+    
+    
+    @authenticate
+    def get(self,request,pk=None):
+       if pk is not None:
+            dataget = models.BusinessModel.objects.get(pk=ObjectId(pk))
+            if dataget:
+                context = {'business details':{'uid':dataget.uid, 'name': dataget.name,'category': dataget.category,
+                       'subcategory':dataget.subcategory,'country': dataget.country,
+                       'contact_person':dataget.contact_person,'contact_phone':dataget.contact_phone,
+                       'email':dataget.email,'password':dataget.password,'address': dataget.address,
+                       'correspondance_address': dataget.correspondance_address,'alias_name':dataget.alias_name,
+                       'legal_structure':dataget.legal_structure,'company_website':dataget.company_website,
+                       'registration_no':dataget.registration_no}}
+                print(context)
+                return JsonResponse(context)   
+       else:
+            data = models.BusinessModel.objects.all()
+           
+            print(data)
+            context = {'business details': list(data.values('uid','name','category','subcategory',
+                            'country', 'contact_person', 'contact_phone', 'email', 'password',
+                            'address','correspondance_address','alias_name',
+                            'legal_structure','company_website','registration_no')),
+                       }
+            print(context)
+            return JsonResponse(context)   
         
+        
+        
+class ProfessionalDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ProfessionalDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def get(self,request,pk=None):
+       if pk is not None:
+            pdataget = models.ProfessionalModel.objects.get(pk=ObjectId(pk))
+            context = {'professional details':{'uid':pdataget.uid, 'name': pdataget.name,'category': pdataget.category,
+                       'subcategory':pdataget.subcategory,'country': pdataget.country,
+                       'contact_person':pdataget.contact_person,'contact_phone':pdataget.contact_phone,
+                       'email':pdataget.email,'password':pdataget.password,'address': pdataget.address,
+                       'correspondance_address': pdataget.correspondance_address,'alias_name':pdataget.alias_name,
+                       'legal_structure':pdataget.legal_structure,'company_website':pdataget.company_website,
+                       'registration_no':pdataget.registration_no}}    
+            print(context)
+            return JsonResponse(context)   
+       else:
+            pdata = models.ProfessionalModel.objects.all()
+            print(pdata)
+            context = {
+                        'professional details': list(pdata.values('uid','name','category','subcategory',
+                            'country', 'contact_person', 'contact_phone', 'email', 'password',
+                            'address','correspondance_address','alias_name',
+                            'legal_structure','company_website','registration_no')),
+                       }
+            print(context)
+            return JsonResponse(context)   
+        
+        
+class RelationshipDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(RelationshipDetails, self).dispatch(request, *args, **kwargs)
+    
+    def relation(self,request):
+        biz = models.BusinessModel.objects.all()
+        print(biz['category'])
+        if biz:
+            bizuid = biz['uid']
+            biztype = biz['category']
+            reltype = 'consumer'
+            now = datetime.now(timezone.utc)
+            created =now.strftime("%Y-%m-%d %H:%M:%S")
+            isaccepted ='True'
+            consumer_id = request.user['id']
+            rel =  models.RelationshipModel(consumer_id = consumer_id ,bizuid = bizuid, biztype = biztype, 
+                            reltype = reltype, created = created, isaccepted = isaccepted)
+            rel.save() 
+            return rel
+    
+    
+    @authenticate
+    def get(self,request,pk=None):
+        self.relation(self)
+        rel = models.RelationshipModel.objects.all()
+        context = list(rel.values('bizuid','biztype','reltype','created','isaccepted')),
+        print(context)
+        return JsonResponse(context)   
+    
+    
+    
+class IdentityDocumentDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(IdentityDocumentDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.IdentityDocumentForm(data)
+        print("From identity post",request.user)
+        print(request.user['id'])
+        if form.is_valid():
+            doctype = form.cleaned_data['doctype']
+            docid = form.cleaned_data['docid']
+            expirationdate = form.cleaned_data['expiration_date']
+            filename = form.cleaned_data['filename']
+           # filesize = form.cleaned_data['filesize']
+            contenttype = form.cleaned_data['content_type']
+           # country = form.cleaned_data['country']
+            tags = form.cleaned_data['tags']
+           # consumerid = request.user['id']
+           # conid = models.ConsumerModel.objects.get(request.username) 
+            con = models.IdentityDocumentModel( doctype = doctype, docid = docid,
+                                            expiration_date = expirationdate, filename = filename,
+                                             content_type = contenttype,
+                                             tags = tags)
+            con.save()                               
+            #form.save()
+            return JsonResponse({'error':'false', 'msg':'Identity Document created'})  
+        else:
+            return JsonResponse({'error':'true','msg':'Idoc creation failed','form':form.errors})
+            
+    
+    @authenticate
+    def get(self,request,pk=None):
+        data = models.IdentityDocumentModel.objects.all()
+        print(data)
+        context = {'Idocs': list(data.values('doctype','docid','expiration_date','tags',
+                                             'content_type','filename'
+                                             ))}
+        print(context)
+        return JsonResponse(context)   
+    
+             
+    @authenticate
+    def put(self,request,pk=None):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.IdentityDocumentForm(data)
+        if pk is not None:
+            dataget = models.IdentityDocumentModel.objects.get(pk=ObjectId(pk))
+            if form.is_valid():         
+               dataget.doctype  = form.cleaned_data['doctype']
+               dataget.expiration_date = form.cleaned_data['expiration_date']
+               dataget.content_type = form.cleaned_data['content_type']
+               dataget.filename = form.cleaned_data['filename']
+               dataget.tags = form.cleaned_data['tags']
+               dataget.save()
+               context = {'doctype':dataget.doctype, 'expiration_date': dataget.expiration_date,
+                          'content_type': dataget.content_type,'filename':dataget.filename,
+                          'tags': dataget.tags}
+               print(context)
+              # form.save()
+               return JsonResponse({'error':'false', 'msg':'IDoc updated successfully'})
+            else:
+               return JsonResponse({'error':'true','msg':'Idoc update failed','form':form.errors})
+        else:
+            return JsonResponse({'error':'true','msg':'Please provide a valid data'})
+    
+    @authenticate
+    def delete(self, request,pk=None):
+        if pk is not None:
+            dataget = models.IdentityDocumentModel.objects.get(pk=ObjectId(pk))
+            print(dataget)
+            dataget.delete()
+            return JsonResponse({'error':'false','msg':'Idoc deleted successfully'})
+        else:
+            return JsonResponse({'error':'true','msg':'Idoc  not deleted'})
+       
