@@ -22,4 +22,12 @@ urlpatterns = [
     path('get_idoc/',views.IdentityDocumentDetails.as_view()), 
     path('edit_idoc/<str:pk>/',views.IdentityDocumentDetails.as_view()), 
     path('idoc_delete/<str:pk>/', views.IdentityDocumentDetails.as_view()),
+    path('pdoc_create/',views.PersonalDocumentDetails.as_view()),  #post
+    path('get_pdoc/',views.PersonalDocumentDetails.as_view()), 
+    path('edit_pdoc/<str:pk>/',views.PersonalDocumentDetails.as_view()), 
+    path('pdoc_delete/<str:pk>/', views.PersonalDocumentDetails.as_view()),
+    path('cdoc_create/',views.CertificateDocumentDetails.as_view()),  #post
+    path('get_cdoc/',views.CertificateDocumentDetails.as_view()), 
+    path('edit_cdoc/<str:pk>/',views.CertificateDocumentDetails.as_view()), 
+    path('cdoc_delete/<str:pk>/', views.CertificateDocumentDetails.as_view()),
 ]

@@ -464,3 +464,152 @@ class IdentityDocumentDetails(View):
         else:
             return JsonResponse({'error':'true','msg':'Idoc  not deleted'})
        
+       
+class PersonalDocumentDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(PersonalDocumentDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.PersonalDocumentForm(data)
+        print("From personal post",request.user)
+        print(request.user['id'])
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            description = form.cleaned_data['description']
+            expirationdate = form.cleaned_data['expiration_date']
+            filename = form.cleaned_data['filename']
+            contenttype = form.cleaned_data['content_type']
+           
+            con = models.PersonalDocumentModel( name = name, description = description,
+                                            expiration_date = expirationdate, filename = filename,
+                                             content_type = contenttype)
+            con.save()                               
+            return JsonResponse({'error':'false', 'msg':'Personal Document created'})  
+        else:
+            return JsonResponse({'error':'true','msg':'Pdoc creation failed','form':form.errors})
+            
+    
+    @authenticate
+    def get(self,request,pk=None):
+        data = models.PersonalDocumentModel.objects.all()
+        print(data)
+        context = {'Pdocs': list(data.values('name','description','expiration_date',
+                                             'content_type','filename'
+                                             ))}
+        print(context)
+        return JsonResponse(context)   
+    
+             
+    @authenticate
+    def put(self,request,pk=None):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.PersonalDocumentForm(data)
+        if pk is not None:
+            dataget = models.PersonalDocumentModel.objects.get(pk=ObjectId(pk))
+            if form.is_valid():         
+               dataget.name  = form.cleaned_data['name']
+               dataget.expiration_date = form.cleaned_data['expiration_date']
+               dataget.content_type = form.cleaned_data['content_type']
+               dataget.filename = form.cleaned_data['filename']
+               dataget.description = form.cleaned_data['description']
+               dataget.save()
+               context = {'name':dataget.name, 'expiration_date': dataget.expiration_date,
+                          'content_type': dataget.content_type,'filename':dataget.filename,
+                          'description': dataget.description}
+               print(context)
+              # form.save()
+               return JsonResponse({'error':'false', 'msg':'PDoc updated successfully'})
+            else:
+               return JsonResponse({'error':'true','msg':'Pdoc update failed','form':form.errors})
+        else:
+            return JsonResponse({'error':'true','msg':'Please provide a valid data'})
+    
+    @authenticate
+    def delete(self, request,pk=None):
+        if pk is not None:
+            dataget = models.PersonalDocumentModel.objects.get(pk=ObjectId(pk))
+            print(dataget)
+            dataget.delete()
+            return JsonResponse({'error':'false','msg':'Pdoc deleted successfully'})
+        else:
+            return JsonResponse({'error':'true','msg':'Pdoc  not deleted'})
+       
+       
+       
+class CertificateDocumentDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(CertificateDocumentDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.CertificateDocumentForm(data)
+        print("From personal post",request.user)
+        print(request.user['id'])
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            description = form.cleaned_data['docid']
+            identification_no = form.cleaned_data['identification_number']
+            filename = form.cleaned_data['filename']
+            issueauthority = form.cleaned_data['issue_authority']
+           
+            con = models.CertificateDocumentModel( name = name, description = description,
+                                            identification_no = identification_no, filename = filename,
+                                            issue_authority = issueauthority)
+       
+            con.save()                               
+            return JsonResponse({'error':'false', 'msg':' Certificate Document created'})  
+        else:
+            return JsonResponse({'error':'true','msg':'Cdoc creation failed','form':form.errors})
+            
+    
+    @authenticate
+    def get(self,request,pk=None):
+        data = models.CertificateDocumentModel.objects.all()
+        print(data)
+        context = {'Pdocs': list(data.values('name','description','identification_no',
+                                             'content_type','filename','issue_authority'
+                                             ))}
+        print(context)
+        return JsonResponse(context)   
+    
+             
+    @authenticate
+    def put(self,request,pk=None):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.CertificateDocumentForm(data)
+        if pk is not None:
+            dataget = models.CertificateDocumentModel.objects.get(pk=ObjectId(pk))
+            if form.is_valid():         
+               dataget.name  = form.cleaned_data['name']
+               dataget.content_type = form.cleaned_data['content_type']
+               dataget.filename = form.cleaned_data['filename']
+               dataget.description = form.cleaned_data['description']
+               dataget.identification_number = form.cleaned_data['identification_number']
+               dataget.issue_authority = form.cleaned_data['issue_authority']
+               dataget.save()
+               context = {'name':dataget.name,'identification_number':dataget.identification_number, 
+                          'content_type': dataget.content_type,'filename':dataget.filename,
+                          'description': dataget.description,'issue_authority':dataget.issue_authority}
+               print(context)
+              # form.save()
+               return JsonResponse({'error':'false', 'msg':'CDoc updated successfully'})
+            else:
+               return JsonResponse({'error':'true','msg':'Cdoc update failed','form':form.errors})
+        else:
+            return JsonResponse({'error':'true','msg':'Please provide a valid data'})
+    
+    @authenticate
+    def delete(self, request,pk=None):
+        if pk is not None:
+            dataget = models.CertificateDocumentModel.objects.get(pk=ObjectId(pk))
+            print(dataget)
+            dataget.delete()
+            return JsonResponse({'error':'false','msg':'Cdoc deleted successfully'})
+        else:
+            return JsonResponse({'error':'true','msg':'Cdoc  not deleted'})
+       

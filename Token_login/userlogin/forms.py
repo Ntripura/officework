@@ -1,7 +1,8 @@
 from django.forms import fields  
 from userlogin import models  
 from django import forms  
-from userlogin.models import ConsumerModel, DummyRelationModel,BusinessModel,ProfessionalModel,IdentityDocumentModel
+from userlogin.models import ConsumerModel, DummyRelationModel,BusinessModel,ProfessionalModel
+from userlogin.models import IdentityDocumentModel, PersonalDocumentModel, CertificateDocumentModel
 from django.core.exceptions import ValidationError
   
 
@@ -121,8 +122,6 @@ class IdentityDocumentForm(forms.ModelForm):
     content_type = forms.CharField()
     tags = forms.CharField()
    
-    
-    
     class Meta:
        model = IdentityDocumentModel
        fields = [
@@ -131,4 +130,37 @@ class IdentityDocumentForm(forms.ModelForm):
                 ]
        
             
+class PersonalDocumentForm(forms.ModelForm):
+
+    name = forms.CharField()  
+    description = forms.CharField()
+    expiration_date = forms.CharField() 
+    filename = forms.CharField()
+    content_type = forms.CharField()
+    tags = forms.CharField()
+   
+    class Meta:
+       model = PersonalDocumentModel
+       fields = [
+                 'name','description','expiration_date','filename',
+                 'content_type','tags'
+                ]       
+     
+     
+class CertificateDocumentForm(forms.ModelForm):
+
+    name = forms.CharField()  
+    description = forms.CharField()
+    filename = forms.CharField() 
+    identification_number = forms.CharField()
+    issue_authority = forms.CharField()
+    
+    class Meta:
+       model = CertificateDocumentModel
+       fields = [
+                 'name','description','filename',
+                 'issue_authority'
+                ]            
+     
+
       

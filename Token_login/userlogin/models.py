@@ -157,3 +157,44 @@ class IdentityDocumentModel(models.Model):
     ciphertext = models.CharField(max_length=10,default=None)  
     tags = models.CharField(max_length=10,default=None)  
     
+    
+    
+class PersonalDocumentModel(models.Model):  
+    
+    _id = models.ObjectIdField(primary_key = True)
+    consumer_id = models.ForeignKey(ConsumerModel,on_delete=models.CASCADE)
+    category = models.CharField(max_length=30,default=None)  
+    name = models.CharField(max_length=30,default=None)  
+    description = models.CharField(max_length=10,default=None)  
+    expiration_date = models.DateTimeField()
+    content_type = models.CharField(max_length=30,default=None)  
+    filename = models.CharField(max_length=30,default=None)
+    created = models.DateTimeField()
+    updated = models.DateTimeField()  
+    metadata = models.CharField(max_length=10,default=None)  
+    docid = models.CharField(max_length=10,default=None)  
+    ciphertext = models.CharField(max_length=10,default=None)  
+    tags = models.CharField(max_length=10,default=None)  
+    subtags = models.CharField(max_length=10,default=None)  
+    
+    
+class CertificateDocumentModel(models.Model):  
+    
+    _id = models.ObjectIdField(primary_key = True)
+    consumer_id = models.ForeignKey(ConsumerModel,on_delete=models.CASCADE)
+    category = models.CharField(max_length=30,default=None)  
+    name = models.CharField(max_length=30,default=None)  
+    description = models.CharField(max_length=10,default=None)  
+    issue_authority = models.CharField(max_length=30,default=None)  
+    location = models.CharField(max_length=30,default=None)
+    issue_date = models.DateTimeField()
+    identification_number = models.CharField(max_length=10,default=None)  
+    filename = models.CharField(max_length=10,default=None)  
+    filesize = models.CharField(max_length=10,default=None)  
+    content_type = models.CharField(max_length=10,default=None)  
+    created = models.DateTimeField()
+    updated = models.DateTimeField()
+    ciphertext = models.CharField(max_length=10,default=None)  
+
+
+
