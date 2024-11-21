@@ -47,3 +47,38 @@ class ConsumerReminder(Document):
     target = fields.DateTimeField()
     created = fields.DateTimeField()
     message = fields.StringField()
+    
+class IdentityDocument(Document):
+    consumer = fields.ReferenceField(ConsumerModel)
+    category = fields.StringField()  
+    doctype = fields.StringField()  
+    docid = fields.StringField()  
+    expiration_date = fields.DateTimeField()  
+    content_type = fields.StringField()  
+    filename = fields.StringField()    
+    filesize = fields.IntField()  
+    created = fields.DateTimeField()
+    updated = fields.DateTimeField()    
+    metadata = fields.DictField()
+    verification_status = fields.StringField() 
+    validity_status = fields.StringField()
+    verification_vendor = fields.StringField()
+    ciphertext = fields.StringField()
+    tags = fields.StringField()
+    
+    
+class PersonalDocument(Document):
+    consumer = fields.ReferenceField(ConsumerModel)
+    category = fields.StringField()  
+    name = fields.StringField()  
+    description = fields.StringField()  
+    expiration_date = fields.DateTimeField()  
+    content_type = fields.StringField()  
+    filename = fields.StringField()  
+    created = fields.DateTimeField()
+    updated = fields.DateTimeField()
+    metadata = fields.DictField()
+    ciphertext = fields.StringField()
+    tags = fields.StringField()
+    subtags = fields.StringField()    
+    

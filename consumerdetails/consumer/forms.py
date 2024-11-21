@@ -54,3 +54,26 @@ class ConsumerNotificationForm(forms.Form):
 class ReminderForm(forms.Form):
     message = forms.CharField()
     target = forms.CharField()
+    
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(required=False)
+    mobile = forms.CharField(required=False)
+    
+    
+class IdocForm(forms.Form):
+    doctype = forms.CharField()
+    docid = forms.CharField()
+    content_type = forms.CharField()
+    filename = forms.CharField()
+    expiration_date = forms.CharField() 
+    tags = forms.CharField()
+
+
+class PdocForm(forms.Form):
+    name = forms.CharField()
+    description = forms.CharField()
+    content_type = forms.CharField()
+    filename = forms.CharField()
+    expiration_date = forms.CharField() 
+    tags = forms.CharField()
+

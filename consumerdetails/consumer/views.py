@@ -37,6 +37,19 @@ def consumer_by_cofferid(coffer_id):
     con = models.ConsumerModel.objects(coffer_id=coffer_id).first()
     return con
 
+def get_citizenship(citizen):
+    citizenship = ['citizen_primary','citizen_second','citizen_third','citizen_fourth']
+    for item in citizen:
+        if item['index'] in citizenship:
+            citizenship.remove(item['index'])
+    try:
+        return citizenship[0]
+    except KeyError as e:
+        return None
+            
+
+
+
 
 class RegisterUser(View):
     form = forms.ConsumerForm
@@ -305,5 +318,296 @@ class ReminderDetails(View):
             return JsonResponse({'error':'false','msg':'Reminder deleted successfully'})
         else:
             return JsonResponse({'error':'true','msg':'Reminder not deleted'})
+        
+
+class ForgotPassword(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ForgotPassword, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.ForgotPasswordForm(data)
+        value = " "
+        field = " "
+        token = os.urandom(3).hex().upper()
+        channel = ""
+        
+        if form.is_valid():
+            em = form.cleaned_data['email']
+            mob = form.cleaned_data['mobile']
+            if em and consumer_find("email", value):
+                value =em
+                field = 'email'
+                #if consumer_find("email", value):
+                   # token = os.urandom(3).hex().upper()
+                channel = 'email'
+                return JsonResponse({'error': True, 'msg': "Email not found"})
+            elif mob and consumer_find("mobile",value):
+                value = mob
+                field = 'mobile'
+                #if consumer_find("mobile",value):
+                   # token = os.urandom(3).hex().upper()
+                channel = 'mobile'
+                return JsonResponse({'error': True, 'msg': "Mobile not found"})
+           # con = models.ConsumerReminder(consumer = request.user['id'],email = em,mobile=mob)  
+                 
+            con = consumer_find(field,value)      
+            if con:
+                con.password_rest_token = token
+                con.password_reset_timestamp = datetime.now(timezone.utc)
+                msg = 'Password reset token sent to {}'.format(channel)
+                #if channel == 'email':
+                   # email = con.email
+                   # return JsonResponse({'error': 'false', 'msg': 'Email reset'})
+                msg = 'Password reset token sent to {}'.format(channel)
+                #if channel == 'mobile':
+                    #mobile = con.mobile
+                    #return JsonResponse({'error': 'false', 'msg': 'Mobile is reset'})
+                con.save()
+                return JsonResponse({'error': 'false', 'msg': 'Password is reset'})
+        else:
+            return JsonResponse({'error':'true','msg':'Reset failed','form':form.errors})
+        
+        
+class IdentityDocumentDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(IdentityDocumentDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.IdocForm(data)
+        
+        if form.is_valid():
+            doctype = form.cleaned_data['doctype']
+            docid = form.cleaned_data['docid']
+            filename = form.cleaned_data['filename']
+            content_type = form.cleaned_data['content_type']
+            edate = form.cleaned_data['expiration_date']
+            tags = form.cleaned_data['tags']
+            verify = "Not-verified"
+            vstatus = "valid"
+            con = request.user['id']
+           # cat = get_citizenship(con.country)
+            now = datetime.now(timezone.utc)
+            
+            try:
+                targetdate = datetime.strptime(edate, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+            except ValueError:
+                return JsonResponse({'error': 'true', 'msg': 'Invalid expiration date format. Use YYYY-MM-DD HH:MM:SS.'})
+
+            if targetdate <= now:
+                return JsonResponse({'error': 'true', 'msg': 'Target must be later than current date and time.'})
+
+            time =now.strftime("%Y-%m-%d %H:%M:%S")
+           
+            idoc = models.IdentityDocument(consumer = con,doctype = doctype,
+                                          docid = docid,filename = filename,content_type =content_type,
+                                          expiration_date = edate,updated = time,tags = tags,created=time,
+                                          verification_status = verify, validity_status = vstatus,
+                                         # category = cat
+                                           )              
+            idoc.save()
+            return JsonResponse({'error': 'false', 'msg': 'Idoc is created'})
+        else:
+            return JsonResponse({'error':'true','msg':'Idoc creation failed','form':form.errors})
+        
+    
+    @authenticate
+    def get(self,request,pk=None):
+           
+            data = models.IdentityDocument.objects.all()
+            details= []
+            for item in data:
+                details.append({
+                    'consumer': request.user['id'],
+                    'doctype': item.doctype,
+                    'docid':item.docid,
+                    'filename':item.filename,
+                    'content_type': item.content_type,
+                    'expiration_date': item.expiration_date,
+                    'updated':item.updated,
+                    })
+            return JsonResponse({'Idocs': details})
+           
+           
+    
+    @authenticate
+    def put(self,request,pk=None):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.IdocForm(data)
+        
+        if pk is not None:
+            dataget = models.IdentityDocument.objects.get(pk=pk)
+            #cofid = dataget.coffer_id
+            #consumer = consumer_by_cofferid(cofid)
+            if dataget:
+                if form.is_valid():         
+                    doctype = form.cleaned_data['doctype']
+                    docid = form.cleaned_data['docid']
+                    filename = form.cleaned_data['filename']
+                    content_type = form.cleaned_data['content_type']
+                    edate = form.cleaned_data['expiration_date']
+                    tags = form.cleaned_data['tags']
+                    con = request.user['id']
+                    # cat = get_citizenship(con.country)
+                    now = datetime.now(timezone.utc)
+            
+                try:
+                    targetdate = datetime.strptime(edate, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                except ValueError:
+                    return JsonResponse({'error': 'true', 'msg': 'Invalid expiration date format. Use YYYY-MM-DD HH:MM:SS.'})
+
+                if targetdate <= now:
+                    return JsonResponse({'error': 'true', 'msg': 'Target must be later than current date and time.'})
+
+                time =now.strftime("%Y-%m-%d %H:%M:%S")
+           
+                idoc = models.IdentityDocument(consumer = con,doctype = dataget.doctype,
+                                          docid = dataget.docid,filename = dataget.filename,content_type =dataget.content_type,
+                                          expiration_date = dataget.edate,updated = dataget.time,tags = dataget.tags,created=dataget.time,
+                                    
+                                         # category = cat
+                                           )              
+                idoc.save()
+            return JsonResponse({'error': 'false', 'msg': 'Idoc is updated'})
+        else:
+            return JsonResponse({'error':'true','msg':'Idoc updation failed','form':form.errors})
+        
+           
+    @authenticate
+    def delete(self, request,pk=None):
+        if pk is not None:
+            dataget = models.IdentityDocument.objects.get(pk=pk)
+            print(dataget)
+            dataget.delete()
+            return JsonResponse({'error':'false','msg':'Idoc is deleted successfully'})
+        else:
+            return JsonResponse({'error':'true','msg':'Idoc not deleted'})
+        
+        
+     
+class PersonalDocumentDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(PersonalDocumentDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.PdocForm(data)
+        
+        if form.is_valid():
+            name1 = form.cleaned_data['name']
+            description = form.cleaned_data['description']
+            filename = form.cleaned_data['filename']
+            content_type = form.cleaned_data['content_type']
+            edate = form.cleaned_data['expiration_date']
+            tags = form.cleaned_data['tags']
+            con = request.user['id']
+           # cat = get_citizenship(con.country)
+            now = datetime.now(timezone.utc)
+            
+            try:
+                targetdate = datetime.strptime(edate, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+            except ValueError:
+                return JsonResponse({'error': 'true', 'msg': 'Invalid expiration date format. Use YYYY-MM-DD HH:MM:SS.'})
+
+            if targetdate <= now:
+                return JsonResponse({'error': 'true', 'msg': 'Target must be later than current date and time.'})
+
+            time =now.strftime("%Y-%m-%d %H:%M:%S")
+           
+            pdoc = models.PersonalDocument(consumer = con,name = name1,
+                                          description = description,filename = filename,content_type =content_type,
+                                          expiration_date = edate,updated = time,tags = tags,created=time,
+                                            # category = cat
+                                           )              
+            pdoc.save()
+            return JsonResponse({'error': 'false', 'msg': 'Pdoc is created'})
+        else:
+            return JsonResponse({'error':'true','msg':'Pdoc creation failed','form':form.errors})
+        
+        
+    @authenticate
+    def get(self,request,pk=None):
+           
+            data = models.PersonalDocument.objects.all()
+            details= []
+            for item in data:
+                details.append({
+                    'consumer': request.user['id'],
+                    'name': item.name,
+                    'description':item.description,
+                    'filename':item.filename,
+                    'content_type': item.content_type,
+                    'expiration_date': item.expiration_date,
+                    'updated':item.updated,
+                    })
+            return JsonResponse({'pdocs': details})
+        
+        
+        
+    @authenticate
+    def put(self,request,pk=None):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.PdocForm(data)
+        
+        if pk is not None:
+            dataget = models.PersonalDocument.objects.get(pk=pk)
+            #cofid = dataget.coffer_id
+            #consumer = consumer_by_cofferid(cofid)
+            if dataget:
+                if form.is_valid():         
+                    dataget.name = form.cleaned_data['name']
+                    dataget.description = form.cleaned_data['description']
+                    dataget.filename = form.cleaned_data['filename']
+                    dataget.content_type = form.cleaned_data['content_type']
+                    dataget.edate = form.cleaned_data['expiration_date']
+                    dataget.tags = form.cleaned_data['tags']
+                    con = request.user['id']
+                    # cat = get_citizenship(con.country)
+                    now = datetime.now(timezone.utc)
+            
+                try:
+                    targetdate = datetime.strptime(dataget.edate, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+                except ValueError:
+                    return JsonResponse({'error': 'true', 'msg': 'Invalid expiration date format. Use YYYY-MM-DD HH:MM:SS.'})
+
+                if targetdate <= now:
+                    return JsonResponse({'error': 'true', 'msg': 'Target must be later than current date and time.'})
+
+                dataget.time =now.strftime("%Y-%m-%d %H:%M:%S")
+           
+                pdoc = models.PersonalDocument(consumer = con,name = dataget.name,
+                                          description = dataget.description,filename = dataget.filename,
+                                          content_type =dataget.content_type,
+                                          expiration_date = dataget.edate,updated = dataget.time,tags = dataget.tags,created=dataget.time,
+                                    
+                                         # category = cat
+                                           )              
+                pdoc.save()
+                
+            return JsonResponse({'error': 'false', 'msg': 'Pdoc is updated'})
+        else:
+            return JsonResponse({'error':'true','msg':'pdoc updation failed','form':form.errors})
+        
+           
+    @authenticate
+    def delete(self, request,pk=None):
+        if pk is not None:
+            dataget = models.PersonalDocument.objects.get(pk=pk)
+            print(dataget)
+            dataget.delete()
+            return JsonResponse({'error':'false','msg':'Pdoc is deleted successfully'})
+        else:
+            return JsonResponse({'error':'true','msg':'pdoc not deleted'})     
+     
+     
+     
        
+            
             

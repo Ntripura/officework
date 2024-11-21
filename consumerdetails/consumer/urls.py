@@ -16,6 +16,16 @@ urlpatterns = [
    path('rem_create/',views.ReminderDetails.as_view()),  #post
    path('reminders/',views.ReminderDetails.as_view()),  #get
     path('rem_delete/<str:pk>/', views.ReminderDetails.as_view()),
+    path('pswd_reset/',views.ForgotPassword.as_view()),  #post
+   path('idoc_create/',views.IdentityDocumentDetails.as_view()),  #post
+   path('idocs/',views.IdentityDocumentDetails.as_view()), 
+   path('idoc_edit/<str:pk>/',views.IdentityDocumentDetails.as_view()), 
+   path('idoc_delete/<str:pk>/', views.IdentityDocumentDetails.as_view()),
+   path('pdoc_create/',views.PersonalDocumentDetails.as_view()),  #post
+   path('pdocs/',views.PersonalDocumentDetails.as_view()), 
+   path('pdoc_edit/<str:pk>/',views.PersonalDocumentDetails.as_view()), 
+   path('pdoc_delete/<str:pk>/', views.PersonalDocumentDetails.as_view()),
+    
     
 ]
      
