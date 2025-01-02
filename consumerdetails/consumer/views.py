@@ -89,6 +89,16 @@ def audit_consumer(coffer_id, name, message):
     aud_con.timestamp = datetime.now()  
     aud_con.save()
 
+def notification_business(biz_obj, message, priority=10, group_ids=None):
+    buss_notify = models.BusinessNotification()
+    buss_notify.business = biz_obj  
+    buss_notify.message = message  
+    buss_notify.priority = priority  
+    buss_notify.status = 'unread'  
+    buss_notify.timestamp = datetime.now()   
+    if group_ids:  # List of Group IDs
+        buss_notify.group_acls = group_ids
+    buss_notify.save()
 
 class RegisterUser(View):
     form = forms.ConsumerForm
