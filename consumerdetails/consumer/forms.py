@@ -77,3 +77,56 @@ class PdocForm(forms.Form):
     expiration_date = forms.CharField() 
     tags = forms.CharField()
 
+
+class CDocForm(forms.Form):
+    name = forms.CharField()
+    description = forms.CharField()
+    issue_authority = forms.CharField(required=False)
+    identification_number = forms.CharField()
+    content_type = forms.CharField()
+    issue_date = forms.CharField(required=False)
+    location = forms.CharField(required=False)
+    filename = forms.CharField(required=False)
+    
+    
+class BusinessForm(forms.Form):
+    name = forms.CharField()  
+    category = forms.CharField()
+    subcategory = forms.CharField() 
+    country = forms.CharField()
+    contact_person = forms.CharField()
+    contact_phone = forms.CharField()
+    email = forms.EmailField()
+    password = forms.CharField()
+    address = forms.CharField()
+    correspondance_address = forms.CharField()
+    alias_name = forms.CharField() 
+    legal_structure = forms.CharField()
+    company_website = forms.CharField()  
+    registration_no = forms.CharField()  
+    
+    
+class ProfessionalForm(forms.Form):
+
+    name = forms.CharField()  
+    category = forms.CharField()
+    subcategory = forms.CharField() 
+    country = forms.CharField()
+    contact_person = forms.CharField()
+    contact_phone = forms.CharField()
+    email = forms.EmailField()
+    password = forms.CharField()
+    address = forms.CharField()
+    correspondence_address = forms.CharField()
+    website = forms.CharField()  
+    
+
+class RequestRelationForm(forms.Form):
+    entityId = forms.CharField()
+    description = forms.CharField()    
+    biztype = forms.CharField()
+    
+    
+class RequestEntityForm(forms.Form):
+    entityId = forms.CharField()
+    description = forms.CharField()

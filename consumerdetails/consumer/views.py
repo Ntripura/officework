@@ -48,6 +48,49 @@ def get_citizenship(citizen):
         return None
             
 
+def notify_professional(prof_obj, message, priority=10, group_ids=None):
+    prof_notif = models.ProfessionalNotification()
+    prof_notif.professional = prof_obj  
+    prof_notif.message = message  
+    prof_notif.priority = priority  
+    prof_notif.status = 'unread'  
+    prof_notif.timestamp = datetime.now()   
+    if group_ids:  
+        prof_notif.group_acls = group_ids
+    prof_notif.save()
+
+
+def audit_professional(prof_uid, name, message):
+    audit_event = models.Event()
+    audit_event.reference = prof_uid  
+    audit_event.name = name.upper()       
+    audit_event.message = message    
+    audit_event.reference_obj = 'professional'  
+    audit_event.timestamp = datetime.now()    
+    audit_event .save()
+
+
+def audit_business(biz_uid, name, message):
+    aud_bus = models.Event()
+    aud_bus.reference = biz_uid  
+    aud_bus.name = name.upper()  
+    aud_bus.message = message    
+    aud_bus.reference_obj = 'business'  
+    aud_bus.timestamp = datetime.now()  
+    aud_bus.save()
+
+
+def audit_consumer(coffer_id, name, message):
+    aud_con = models.Event()
+    aud_con.reference = coffer_id  
+    aud_con.name = name.upper()    
+    aud_con.message = message    
+    aud_con.reference_obj = 'consumer' 
+    aud_con.timestamp = datetime.now()  
+    aud_con.save()
+
+
+
 
 
 
@@ -608,6 +651,279 @@ class PersonalDocumentDetails(View):
      
      
      
+class CertificateDocumentDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(CertificateDocumentDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.CDocForm(data)
+        
+        if form.is_valid():
+            name= form.cleaned_data['name']
+            description = form.cleaned_data['description']
+            issueauthority= form.cleaned_data['issue_authority']
+            idnumber = form.cleaned_data['identification_number']
+            content_type = form.cleaned_data['content_type']
+            idate = form.cleaned_data['issue_date']
+            loc = form.cleaned_data['location']
+            fname = form.cleaned_data['filename']
+            con = request.user['id']
+           # cat = get_citizenship(con.country)
+            now = datetime.now(timezone.utc)
+        
+            time =now.strftime("%Y-%m-%d %H:%M:%S")
+           
+            cdoc = models.CertificateDocument(consumer = con,name = name,description = description,
+                                           filename = fname,content_type =content_type,
+                                          issue_date = idate,updated = time,created=time,location = loc,
+                                          issue_authority = issueauthority,identification_number = idnumber
+                                            # category = cat
+                                           )              
+            cdoc.save()
+            return JsonResponse({'error': 'false', 'msg': 'cdoc is created'})
+        else:
+            return JsonResponse({'error':'true','msg':'cdoc creation failed','form':form.errors})
+        
+        
+    @authenticate
+    def get(self,request,pk=None):
+           
+            data = models.CertificateDocument.objects.all()
+            details= []
+            for item in data:
+                details.append({
+                    'consumer': request.user['id'],
+                    'name': item.name,
+                    'description':item.description,
+                    'filename':item.filename,
+                    'content_type': item.content_type,
+                    'issue_date': item.issue_date,
+                    'identification_number':item.identification_number,
+                    'updated':item.updated,
+                    })
+            return JsonResponse({'cdocs': details})
+        
+        
+class BusinessDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(BusinessDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.BusinessForm(data)
+        
+        if form.is_valid():
+            uid = os.urandom(3).hex().upper()
+            name = form.cleaned_data['name']
+            category = form.cleaned_data['category']
+            subcategory = form.cleaned_data['subcategory']
+            country= form.cleaned_data['country']
+            contact_person =  form.cleaned_data['contact_person']
+            contact_phone = form.cleaned_data['contact_phone']
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            address= form.cleaned_data['address']
+            corr_adr =  form.cleaned_data['correspondance_address']
+            alias_name = form.cleaned_data['alias_name']
+            legal_structure = form.cleaned_data['legal_structure']
+            company_website = form.cleaned_data['company_website']
+            registration_no= form.cleaned_data['registration_no']
+            now = datetime.now(timezone.utc)
+            time =now.strftime("%Y-%m-%d %H:%M:%S")
+            #con = request.user['id']   
+                
+            bdata = models.BusinessModel(uid = uid,name = name, category = category, subcategory = subcategory,
+                            country = country, contact_person = contact_person,contact_phone = contact_phone,
+                            email = email,password = password, address = address,joined = time,
+                            correspondance_address = corr_adr,alias_name = alias_name,
+                            legal_structure = legal_structure, company_website = company_website,
+                            registration_number = registration_no)
+            bdata.save()
+            return JsonResponse({'error':'false', 'msg':'Business Data created'})  
+        else:
+                return JsonResponse({'error':'true','msg':'Business creation failed','form':form.errors})
+    
+    
+    
+class ProfessionalDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ProfessionalDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.ProfessionalForm(data)
+        
+        if form.is_valid():
+             if form.is_valid():
+                uid = os.urandom(3).hex().upper()
+                name = form.cleaned_data['name']
+                category = form.cleaned_data['category']
+                subcategory = form.cleaned_data['subcategory']
+                country= form.cleaned_data['country']
+                contact_person =  form.cleaned_data['contact_person']
+                contact_phone = form.cleaned_data['contact_phone']
+                email = form.cleaned_data['email']
+                password = form.cleaned_data['password']
+                address= form.cleaned_data['address']
+                correspondence_address =  form.cleaned_data['correspondence_address']
+                website = form.cleaned_data['website']
+                now = datetime.now(timezone.utc)
+                time =now.strftime("%Y-%m-%d %H:%M:%S")
+                #consumer_id = request.user['id']
+                
+                pdata = models.ProfessionalModel(uid = uid, name = name, category = category, subcategory = subcategory,
+                            country = country, contact_person = contact_person,contact_phone = contact_phone,
+                            email = email,password = password,  address = address,
+                            correspondence_address = correspondence_address,
+                            website = website
+                            )
+                pdata.save()
+                return JsonResponse({'error':'false', 'msg':'Professional Data created'})  
+        else:
+                return JsonResponse({'error':'true','msg':'Professional creation failed','form':form.errors})     
+    
+            
+        
+        
+        
+class SpecialRelationshipDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(SpecialRelationshipDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self, request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.CDocForm(data)
+        
+        if form.is_valid():
+            name= form.cleaned_data['name']
+            description = form.cleaned_data['description']
+            issueauthority= form.cleaned_data['issue_authority']
+            idnumber = form.cleaned_data['identification_number']
+            content_type = form.cleaned_data['content_type']
+            idate = form.cleaned_data['issue_date']
+            loc = form.cleaned_data['location']
+            fname = form.cleaned_data['filename']
+            con = request.user['id']
+           # cat = get_citizenship(con.country)
+            now = datetime.now(timezone.utc)
+        
+            time =now.strftime("%Y-%m-%d %H:%M:%S")
+           
+            cdoc = models.CertificateDocument(consumer = con,name = name,description = description,
+                                           filename = fname,content_type =content_type,
+                                          issue_date = idate,updated = time,created=time,location = loc,
+                                          issue_authority = issueauthority,identification_number = idnumber
+                                            # category = cat
+                                           )              
+            cdoc.save()
+            return JsonResponse({'error': 'false', 'msg': 'cdoc is created'})
+        else:
+            return JsonResponse({'error':'true','msg':'cdoc creation failed','form':form.errors})
+        
+        
+class RelationshipDetails(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(RelationshipDetails, self).dispatch(request, *args, **kwargs)
+    
+    @authenticate
+    def post(self,request):
+        data = json.loads(request.body.decode('utf-8'))
+        form = forms.RequestRelationForm(data)
+        
+        if form.is_valid():
+            eId= form.cleaned_data['entityId']
+            description = form.cleaned_data['description']
+            btype =form.cleaned_data['biztype']
+            conid = request.user['id']
+            reltype = 'consumer'
+            isaccepted = 'True'
+            status = 'accepted_by_consumer'
+            if btype == 'business':
+                dataget = models.BusinessModel.objects.filter(uid=eId).first()
+            else:
+                dataget = models.ProfessionalModel.objects.filter(uid = eId).first()
+            now = datetime.now(timezone.utc)
+            time =now.strftime("%Y-%m-%d %H:%M:%S")
+           
+            rel = models.RelationshipModel(consumer = conid,biztype = btype,bizuid = dataget.uid,
+                                          reltype =reltype, description = description,created = time,
+                                          accepted =time,isaccepted = isaccepted,status =status)                                                                 
+            rel.save()
+                
+            return JsonResponse({'error': 'false', 'msg': 'Relationship is created'})
+        else:
+            return JsonResponse({'error':'true','msg':'Relationship not created','form':form.errors})
+        
+        
+        
+    @authenticate
+    def put(self,request,pk=None):
+       
+        con = request.user['id']
+        name = con.name
+        if con:
+            if pk is not None:
+                dataget = models.RelationshipModel.objects.get(pk=pk)
+           
+                if dataget:
+                    msg = ''
+                    if 'isacepted' in dataget:
+                        dataget.isaccepted = dataget['isaccepted']
+                        dataget.status = 'accepted_by_user'
+                        dataget.save()
+                        if dataget.biztype == 'prof':
+                            msg = "{} has accepted the relationship request.".format(name, dataget.reltype)
+                            prof = models.ProfessionalModel.objects(uid=dataget.bizuid).first()
+                            notify_professional( prof, msg, group_ids=dataget.group_acls)
+                            try:
+                                audit_professional(prof.uid, 'relationship', msg)
+                            except Exception as e:
+                                print("Error creating an audit trail for professional")
+                                prof_name = prof.name
+                                msg = "You have acceptped relationship with {}.".format(
+                                prof_name)
+                            try:
+                                audit_consumer(con, 'relationship', msg)
+                            except Exception as e:
+                                print( "Error creating an audit trail for consumer")
+                                msg = "Relationship with {} was established successfully.".format(
+                                prof_name)
+                            return {'error': False, 'msg': msg}
+                        if dataget.biztype == 'business':
+                            msg = "{} has accepted the relationship request.".format(name, dataget.reltype)
+                            buss = models.BusinessModel.objects(uid=dataget.bizuid).first()
+                            notify_professional( buss, msg, group_ids=dataget.group_acls)
+                            try:
+                                audit_professional(buss.uid, 'relationship', msg)
+                            except Exception as e:
+                                print("Error creating an audit trail for professional")
+                                bus_name = buss.name
+                                msg = "You have acceptped relationship with {}.".format(
+                                bus_name)
+                            try:
+                                audit_consumer(con, 'relationship', msg)
+                            except Exception as e:
+                                print( "Error creating an audit trail for consumer")
+                                msg = "Relationship with {} was established successfully.".format(
+                                bus_name)
+                            return {'error': False, 'msg': msg}
+                   
+                
+            return JsonResponse({'error': 'false', 'msg': 'Relationship is updated'})
+        else:
+            return JsonResponse({'error':'true','msg':'Relationship updation failed'})
+        
+           
        
             
             
