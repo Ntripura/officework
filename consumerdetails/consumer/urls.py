@@ -25,6 +25,12 @@ urlpatterns = [
    path('pdocs/',views.PersonalDocumentDetails.as_view()), 
    path('pdoc_edit/<str:pk>/',views.PersonalDocumentDetails.as_view()), 
    path('pdoc_delete/<str:pk>/', views.PersonalDocumentDetails.as_view()),
+   path('cdoc_create/',views.CertificateDocumentDetails.as_view()),  #post
+   path('cdocs/',views.CertificateDocumentDetails.as_view()), 
+   path('bdata_create/',views.BusinessDetails.as_view()),  #post
+   path('pdata_create/',views.ProfessionalDetails.as_view()),  #post
+   path('relation_create/',views.RelationshipDetails.as_view()),  #post
+   path('relation_edit/<str:pk>/', views.RelationshipDetails.as_view())
     
     
 ]

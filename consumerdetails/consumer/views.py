@@ -90,10 +90,6 @@ def audit_consumer(coffer_id, name, message):
     aud_con.save()
 
 
-
-
-
-
 class RegisterUser(View):
     form = forms.ConsumerForm
 
